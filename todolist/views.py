@@ -20,11 +20,12 @@ class LoginUser(APIView):
         return Response(data=token, status=status.HTTP_200_OK)
 
 class TodolistView(APIView):
-    authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
-    @swagger_auto_schema(responses={200: TodolistSerializer(many=True)})
     def get(self, request):
-        todolist = Todolist.objects.filter(user=request.user)
+        if self.request.user.is_admin:
+            todolist = Todolist.objects.all()
+        else:
+            todolist = Todolist.objects.filter(user=request.user, completed=False)
         serializer = TodolistSerializer(todolist, many=True)
         return Response(data=serializer.data, status=status.HTTP_200_OK)
     
@@ -55,5 +56,28 @@ class StaffRegister(APIView):
         serializer = UserSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.data
+        # User.objects.create_user(username=data['username'], password=data['password'])
+        return Response(data=serializer.data, status=status.HTTP_201_CREATED)
+    
+class UserView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(
+        responses={200: UserSerializer(many=True)}  # faqat response ko‘rsatiladi
+    )
+    def get(self, request):
+        users = User.objects.all()
+        serializer = UserSerializer(users, many=True)
+        return Response(data=serializer.data, status=status.HTTP_200_OK)
+
+    @swagger_auto_schema(
+        request_body=UserSerializer,  # bu faqat POST uchun to‘g‘ri
+        responses={201: UserSerializer}
+    )
+    def post(self, request, pk):
+        
+        serializer = UserSerializer(data=request.data, pk=pk)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data   # ✅ validated_data ishlatish kerak
         User.objects.create_user(username=data['username'], password=data['password'])
         return Response(data=serializer.data, status=status.HTTP_201_CREATED)

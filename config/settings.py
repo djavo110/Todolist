@@ -107,17 +107,17 @@ SIMPLE_JWT = {
 }
 
 SWAGGER_SETTINGS = {
-   'SECURITY_DEFINITIONS': {
-      'Basic': {
-            'type': 'basic'
-      },
-      'Bearer': {
+    'SECURITY_DEFINITIONS': {
+        'Bearer': {
             'type': 'apiKey',
+            'in': 'header',
             'name': 'Authorization',
-            'in': 'header'
-      }
-   }
+            'description': 'Token-based authentication. Format: Token <token>',
+        }
+    },
+    'USE_SESSION_AUTH': False,
 }
+
 
 
 ROOT_URLCONF = 'config.urls'
